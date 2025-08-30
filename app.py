@@ -1,84 +1,90 @@
-from flask import Flask, request
-import requests
-import os
-import threading
-import time
+from flask import Flask
 
 app = Flask(__name__)
-app.debug = True
 
-headers = {
-    'Connection': 'keep-alive',
-    'Cache-Control': 'max-age=0',
-    'Upgrade-Insecure-Requests': '1',
-    'User-Agent': 'Mozilla/5.0',
-    'Accept': '*/*',
-    'Accept-Encoding': 'gzip, deflate',
-    'Accept-Language': 'en-US,en;q=0.9',
-    'referer': 'www.google.com'
-}
-
-# Global control variable
-stop_flag = False
-
-def send_messages(access_token, thread_id, mn, time_interval, messages):
-    global stop_flag
-    stop_flag = False
-    while not stop_flag:
-        try:
-            for message1 in messages:
-                if stop_flag:   # agar stop dabaya ho to loop tod do
-                    break
-                api_url = f'https://graph.facebook.com/v15.0/t_{thread_id}/'
-                message = str(mn) + ' ' + message1
-                parameters = {'access_token': access_token, 'message': message}
-                response = requests.post(api_url, data=parameters, headers=headers)
-                if response.status_code == 200:
-                    print(f"✅ Message sent: {message}")
-                else:
-                    print(f"❌ Failed: {message}")
-                time.sleep(time_interval)
-        except Exception as e:
-            print("⚠️ Error:", e)
-            time.sleep(10)
-
-
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    if request.method == 'POST':
-        access_token = request.form.get('accessToken')
-        thread_id = request.form.get('threadId')
-        mn = request.form.get('kidx')
-        time_interval = int(request.form.get('time'))
-
-        txt_file = request.files['txtFile']
-        messages = txt_file.read().decode().splitlines()
-
-        # Run in background thread
-        thread = threading.Thread(target=send_messages, args=(access_token, thread_id, mn, time_interval, messages))
-        thread.start()
-
-        return "<h3>🚀 Messages started sending in background. <a href='/stop'>Stop Here</a></h3>"
-
+@app.route('/')
+def home():
     return '''
-    <form method="post" enctype="multipart/form-data">
-        Token: <input type="text" name="accessToken"><br>
-        Thread ID: <input type="text" name="threadId"><br>
-        Name: <input type="text" name="kidx"><br>
-        File: <input type="file" name="txtFile"><br>
-        Interval(sec): <input type="number" name="time"><br>
-        <button type="submit">Start</button>
-    </form>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>Robin Web</title>
+      <style>
+        body {
+          background-color: #000;
+          color: white;
+          font-family: 'Courier New', monospace;
+          text-align: center;
+          margin: 0;
+          padding: 20px;
+        }
+        h1 {
+          color: #ff00ff;
+          text-shadow: 0 0 20px #ff00ff;
+          margin-bottom: 5px;
+        }
+        h3 {
+          color: #fff;
+          margin-bottom: 30px;
+        }
+        .btn {
+          display: block;
+          width: 300px;
+          margin: 20px auto;
+          padding: 15px;
+          background: #00faff;
+          color: #000;
+          text-decoration: none;
+          font-weight: bold;
+          border-radius: 8px;
+          box-shadow: 0 0 15px #00faff, 0 0 40px #00faff;
+          transition: 0.3s;
+        }
+        .btn:hover {
+          background: #00c8c8;
+          box-shadow: 0 0 25px #00faff, 0 0 60px #00faff;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>🤍 MUDDasir WEB 🤍</h1>
+      <h3>( ALL OPTION )</h3>
+
+      <a class="btn" href="/convo">◄ 1 - CONVO SERVER ►</a>
+      <a class="btn" href="/backup">◄ 2 - BACKUP CONVO ►</a>
+      <a class="btn" href="/check">◄ 3 - TOKEN CHECK VALIDITY ►</a>
+      <a class="btn" href="/uids">◄ 4 - FETCH ALL UID WITH TOKEN ►</a>
+      <a class="btn" href="/page">◄ 5 - FETCH PAGE TOKENS ►</a>
+      <a class="btn" href="/group">◄ 6 - GROUP NAME LOCKER ►</a>
+    </body>
+    </html>
     '''
 
+# Example dummy routes
+@app.route('/convo')
+def convo():
+    return "<h2 style='color:lime'>🚀 Convo Server Page</h2>"
 
-@app.route('/stop')
-def stop():
-    global stop_flag
-    stop_flag = True
-    return "<h3>🛑 Messages stopped successfully.</h3>"
+@app.route('/backup')
+def backup():
+    return "<h2 style='color:orange'>📦 Backup Convo Page</h2>"
 
+@app.route('/check')
+def check():
+    return "<h2 style='color:yellow'>🔑 Token Check Page</h2>"
+
+@app.route('/uids')
+def uids():
+    return "<h2 style='color:cyan'>🆔 Fetch UID Page</h2>"
+
+@app.route('/page')
+def page():
+    return "<h2 style='color:violet'>📃 Page Tokens Page</h2>"
+
+@app.route('/group')
+def group():
+    return "<h2 style='color:red'>🔒 Group Name Locker Page</h2>"
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=5000)
