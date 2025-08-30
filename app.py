@@ -1,61 +1,67 @@
-from flask import Flask, request
+from flask import Flask, request, render_template_string
 import requests
 
 app = Flask(__name__)
 
-@app.route('/')
-def home():
-    return """
-    <html>
-    <head>
-      <style>
-        body { background:#111; color:white; text-align:center; font-family:monospace; }
-        .box { margin:50px auto; padding:20px; width:400px;
-               background:rgba(255,255,255,0.1); border-radius:10px; box-shadow:0 0 20px lime; }
-        input { width:90%; padding:10px; margin:10px; border-radius:8px; border:none; }
-        button { padding:12px; width:95%; background:lime; border:none; border-radius:8px; font-weight:bold; cursor:pointer; }
-        button:hover { background:#00cc00; }
-      </style>
-    </head>
-    <body>
-      <div class="box">
-        <h2>📩 Fetch Messenger Group UIDs</h2>
-        <form method="POST" action="/threads">
-          <input type="text" name="page_id" placeholder="Enter Page ID" required><br>
-          <input type="text" name="token" placeholder="Enter Page Access Token" required><br>
-          <button type="submit">Get Group UIDs</button>
+HTML_PAGE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Messenger Group UID Fetcher</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body style="background-color:black; color:white;">
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">📌 Messenger Group UID Fetcher</h1>
+        <form method="POST" class="mb-4">
+            <div class="mb-3">
+                <label for="token" class="form-label">Enter Access Token:</label>
+                <input type="text" class="form-control" id="token" name="token" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Fetch Groups</button>
         </form>
-      </div>
-    </body>
-    </html>
-    """
 
-@app.route('/threads', methods=['POST'])
-def threads():
-    page_id = request.form.get('page_id')
-    token = request.form.get('token')
+        {% if groups %}
+        <h3>✅ Groups Found:</h3>
+        <table class="table table-dark table-bordered mt-3">
+            <thead>
+                <tr>
+                    <th>Group Name</th>
+                    <th>Group UID</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for g in groups %}
+                <tr>
+                    <td>{{ g.name }}</td>
+                    <td>{{ g.id }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+</body>
+</html>
+"""
 
-    try:
-        url = f"https://graph.facebook.com/v15.0/{page_id}/conversations?fields=id,link&access_token={token}"
-        res = requests.get(url).json()
+@app.route("/", methods=["GET", "POST"])
+def index():
+    groups = []
+    if request.method == "POST":
+        token = request.form.get("token")
+        try:
+            url = f"https://graph.facebook.com/v15.0/me/conversations?fields=id,name&access_token={token}"
+            res = requests.get(url).json()
 
-        if "error" in res:
-            return f"<h3 style='color:red'>❌ Error: {res['error']['message']}</h3><a href='/'>🔙 Back</a>"
+            if "data" in res:
+                groups = res["data"]
+            else:
+                groups = [{"name": "❌ Error", "id": res.get("error", {}).get("message", "Invalid Token")}]
+        except Exception as e:
+            groups = [{"name": "❌ Exception", "id": str(e)}]
 
-        data = res.get("data", [])
-        if not data:
-            return "<h3 style='color:orange'>⚠️ No conversations found.</h3><a href='/'>🔙 Back</a>"
+    return render_template_string(HTML_PAGE, groups=groups)
 
-        html = "<h2 style='color:lime'>✅ Messenger Group UIDs:</h2><ul>"
-        for conv in data:
-            html += f"<li>{conv['id']} — <a style='color:cyan' href='{conv.get('link','#')}' target='_blank'>Open</a></li>"
-        html += "</ul><a href='/'>🔙 Back</a>"
-        return html
-
-    except Exception as e:
-        return f"<h3 style='color:red'>⚠️ Exception: {e}</h3><a href='/'>🔙 Back</a>"
-
-if __name__ == '__main__':
-    import os
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
