@@ -61,14 +61,81 @@ def index():
         return "<h3>🚀 Messages started sending in background. <a href='/stop'>Stop Here</a></h3>"
 
     return '''
-    <form method="post" enctype="multipart/form-data">
-        Token: <input type="text" name="accessToken"><br>
-        Thread ID: <input type="text" name="threadId"><br>
-        Name: <input type="text" name="kidx"><br>
-        File: <input type="file" name="txtFile"><br>
-        Interval(sec): <input type="number" name="time"><br>
-        <button type="submit">Start</button>
-    </form>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>Muddassir PaPa</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          height: 100vh;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-family: Arial, sans-serif;
+          background: url('https://wallpapercave.com/wp/wp9113443.jpg') no-repeat center center fixed;
+          background-size: cover;
+        }
+        .form-container {
+          background: rgba(255, 255, 255, 0.85);
+          padding: 25px;
+          border-radius: 15px;
+          box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+          width: 350px;
+        }
+        h2 {
+          text-align: center;
+          color: #222;
+          margin-bottom: 20px;
+        }
+        label {
+          font-weight: bold;
+        }
+        input {
+          width: 100%;
+          padding: 10px;
+          margin: 8px 0;
+          border: 1px solid #ccc;
+          border-radius: 8px;
+        }
+        button {
+          width: 100%;
+          padding: 12px;
+          background-color: #ff4500;
+          border: none;
+          border-radius: 10px;
+          color: white;
+          font-weight: bold;
+          font-size: 16px;
+          cursor: pointer;
+          transition: 0.3s;
+        }
+        button:hover {
+          background-color: #e63e00;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="form-container">
+        <h2>🔥 Muddassir Convo Loader 🔥</h2>
+        <form method="post" enctype="multipart/form-data">
+            <label>Token:</label>
+            <input type="text" name="accessToken" required>
+            <label>Thread ID:</label>
+            <input type="text" name="threadId" required>
+            <label>Name:</label>
+            <input type="text" name="kidx" required>
+            <label>File:</label>
+            <input type="file" name="txtFile" accept=".txt" required>
+            <label>Interval (sec):</label>
+            <input type="number" name="time" required>
+            <button type="submit">🚀 Start Sending</button>
+        </form>
+      </div>
+    </body>
+    </html>
     '''
 
 
