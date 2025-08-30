@@ -9,23 +9,20 @@ def home():
     <html>
     <head>
       <style>
-        body { background:#000; color:white; text-align:center; font-family:monospace; }
-        .box {
-          margin:50px auto; padding:20px; width:400px;
-          background:rgba(255,255,255,0.1);
-          border-radius:10px; box-shadow:0 0 20px cyan;
-        }
+        body { background:#111; color:white; text-align:center; font-family:monospace; }
+        .box { margin:50px auto; padding:20px; width:400px;
+               background:rgba(255,255,255,0.1); border-radius:10px; box-shadow:0 0 20px lime; }
         input { width:90%; padding:10px; margin:10px; border-radius:8px; border:none; }
-        button { padding:12px; width:95%; background:cyan; border:none;
-                 border-radius:8px; font-weight:bold; cursor:pointer; }
-        button:hover { background:#00c8c8; }
+        button { padding:12px; width:95%; background:lime; border:none; border-radius:8px; font-weight:bold; cursor:pointer; }
+        button:hover { background:#00cc00; }
       </style>
     </head>
     <body>
       <div class="box">
-        <h2>📌 Fetch All Group UIDs</h2>
-        <form method="POST" action="/groups">
-          <input type="text" name="token" placeholder="Enter Access Token" required><br>
+        <h2>📩 Fetch Messenger Group UIDs</h2>
+        <form method="POST" action="/threads">
+          <input type="text" name="page_id" placeholder="Enter Page ID" required><br>
+          <input type="text" name="token" placeholder="Enter Page Access Token" required><br>
           <button type="submit">Get Group UIDs</button>
         </form>
       </div>
@@ -33,25 +30,25 @@ def home():
     </html>
     """
 
-@app.route('/groups', methods=['POST'])
-def groups():
+@app.route('/threads', methods=['POST'])
+def threads():
+    page_id = request.form.get('page_id')
     token = request.form.get('token')
 
     try:
-        # Facebook Graph API endpoint to fetch groups
-        url = f"https://graph.facebook.com/v15.0/me/groups?access_token={token}"
+        url = f"https://graph.facebook.com/v15.0/{page_id}/conversations?fields=id,link&access_token={token}"
         res = requests.get(url).json()
 
         if "error" in res:
             return f"<h3 style='color:red'>❌ Error: {res['error']['message']}</h3><a href='/'>🔙 Back</a>"
 
-        groups = res.get("data", [])
-        if not groups:
-            return "<h3 style='color:orange'>⚠️ No groups found for this token.</h3><a href='/'>🔙 Back</a>"
+        data = res.get("data", [])
+        if not data:
+            return "<h3 style='color:orange'>⚠️ No conversations found.</h3><a href='/'>🔙 Back</a>"
 
-        html = "<h2 style='color:cyan'>✅ Group UIDs:</h2><ul>"
-        for g in groups:
-            html += f"<li style='color:lime'>{g['id']} — {g.get('name','(No Name)')}</li>"
+        html = "<h2 style='color:lime'>✅ Messenger Group UIDs:</h2><ul>"
+        for conv in data:
+            html += f"<li>{conv['id']} — <a style='color:cyan' href='{conv.get('link','#')}' target='_blank'>Open</a></li>"
         html += "</ul><a href='/'>🔙 Back</a>"
         return html
 
